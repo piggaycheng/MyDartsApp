@@ -2,6 +2,7 @@ package com.andy.mydartsapp.fragment
 
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.util.Log
@@ -11,6 +12,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
 import com.andy.mydartsapp.R
+import com.andy.mydartsapp.activity.GB2Activity
 import kotlinx.android.synthetic.main.fragment_more.*
 import kotlinx.android.synthetic.main.fragment_more.view.*
 import org.jetbrains.anko.support.v4.toast
@@ -53,7 +55,8 @@ class MoreFragment : Fragment() {
     private val mOnClick = View.OnClickListener{
         when(it.id) {
             R.id.btn_start_GB2 -> {
-                toast("click GB2")
+                val intent = Intent(context, GB2Activity::class.java)
+                startActivity(intent)
             }
         }
     }
