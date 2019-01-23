@@ -23,6 +23,12 @@
         </activity>
         <activity android:name=".activity.GB2Activity">
         </activity>
+
+        <service
+                android:name=".service.BluetoothLeService"
+                android:enabled="true"
+                android:exported="true">
+        </service>
     </application>
 
 </manifest>
