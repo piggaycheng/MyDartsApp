@@ -8,4 +8,6 @@
     <string name="btn_gb2">GB2</string>
     <string name="btn_free_mode">Free Mode</string>
     <string name="btn_back">Back</string>
+
+    <string name="dialog_bl_reconnecting">reconnecting...</string>
 </resources>

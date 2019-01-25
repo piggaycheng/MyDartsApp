@@ -178,12 +178,18 @@ class BluetoothLeService: Service() {
     private val mGattCallback = object: BluetoothGattCallback() {
         override fun onConnectionStateChange(gatt: BluetoothGatt?, status: Int, newState: Int) {
             super.onConnectionStateChange(gatt, status, newState)
+            if(newState == STATE_CONNECTED) {
+                mConnectionState = STATE_CONNECTED
+                broadcastUpdate(ACTION_GATT_CONNECTED)
+                Log.i(TAG, "Connected to GATT server.")
+                // Attempts to discover services after successful connection.
+                Log.i(TAG, "Attempting to start service discovery:" + mBluetoothGatt!!.discoverServices())
 
-            mConnectionState = STATE_CONNECTED
-            broadcastUpdate(ACTION_GATT_CONNECTED)
-            Log.i(TAG, "Connected to GATT server.")
-            // Attempts to discover services after successful connection.
-            Log.i(TAG, "Attempting to start service discovery:" + mBluetoothGatt!!.discoverServices())
+            } else if(newState == STATE_DISCONNECTED) {
+                mConnectionState = STATE_DISCONNECTED
+                Log.i(TAG, "Disconnected from GATT server.")
+                broadcastUpdate(ACTION_GATT_DISCONNECTED)
+            }
         }
 
         override fun onServicesDiscovered(gatt: BluetoothGatt?, status: Int) {

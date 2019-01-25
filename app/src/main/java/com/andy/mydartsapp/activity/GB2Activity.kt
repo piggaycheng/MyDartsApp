@@ -3,8 +3,9 @@ package com.andy.mydartsapp.activity
 import android.app.Activity
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothGattCharacteristic
-import android.bluetooth.BluetoothGattService
 import android.bluetooth.BluetoothManager
+import android.bluetooth.BluetoothProfile.STATE_CONNECTED
+import android.bluetooth.BluetoothProfile.STATE_DISCONNECTED
 import android.bluetooth.le.BluetoothLeScanner
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
@@ -14,6 +15,7 @@ import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.os.IBinder
 import android.support.v4.app.ActivityCompat
+import android.support.v7.app.AlertDialog
 import android.util.Log
 import com.andy.mydartsapp.GattAttributes
 import com.andy.mydartsapp.R
@@ -38,6 +40,8 @@ class GB2Activity : AppCompatActivity() {
     private var mBluetoothLeScanner: BluetoothLeScanner? = null
     private var mBluetoothLeService: BluetoothLeService? = null
     private var gb2Address: String? = null
+    private var mConnectionState = STATE_DISCONNECTED
+    private var mAlertDialog: AlertDialog? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,6 +56,17 @@ class GB2Activity : AppCompatActivity() {
 
         val mainFragment = GB2MainFragment.newInstance()
         openFragment(mainFragment)
+
+        mAlertDialog = AlertDialog.Builder(this)
+            .setTitle("Bluetooth disconnected")
+            .setView(R.layout.bluetooth_alert_dialog)
+            .setPositiveButton("OK", mDialogButtonClick)
+            .setCancelable(false)
+            .create()
+
+        if(mConnectionState == STATE_DISCONNECTED) {
+            mAlertDialog!!.show()
+        }
     }
 
     override fun onResume() {
@@ -187,7 +202,10 @@ class GB2Activity : AppCompatActivity() {
                 }
 
                 BluetoothLeService.ACTION_GATT_DISCONNECTED -> {
-
+                    mConnectionState = STATE_DISCONNECTED
+                    if(mConnectionState == STATE_DISCONNECTED) {
+                        mAlertDialog!!.show()
+                    }
                 }
 
                 BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED -> {
@@ -200,6 +218,11 @@ class GB2Activity : AppCompatActivity() {
                                 mBluetoothLeService!!.setCharacteristicNotification(mGattCharacteristic, true)
                             }
                         }
+                    }
+
+                    mConnectionState = STATE_CONNECTED
+                    if(mConnectionState == STATE_CONNECTED) {
+                        mAlertDialog!!.cancel()
                     }
                 }
 
@@ -215,5 +238,10 @@ class GB2Activity : AppCompatActivity() {
         transaction.replace(R.id.gb2_frameLayout_container, fragment)
 //        transaction.addToBackStack(null)
         transaction.commit()
+    }
+
+    private val mDialogButtonClick = DialogInterface.OnClickListener { dialog, _ ->
+        dialog.cancel()
+//        this.finish()
     }
 }
