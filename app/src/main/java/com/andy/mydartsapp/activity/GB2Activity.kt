@@ -17,6 +17,7 @@ import android.support.v4.app.ActivityCompat
 import android.util.Log
 import com.andy.mydartsapp.GattAttributes
 import com.andy.mydartsapp.R
+import com.andy.mydartsapp.fragment.GB2MainFragment
 import com.andy.mydartsapp.service.BluetoothLeService
 import org.jetbrains.anko.toast
 import java.util.*
@@ -48,6 +49,9 @@ class GB2Activity : AppCompatActivity() {
 
         val gattServiceIntent = Intent(this@GB2Activity, BluetoothLeService::class.java)
         bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE)
+
+        val mainFragment = GB2MainFragment.newInstance()
+        openFragment(mainFragment)
     }
 
     override fun onResume() {
@@ -187,7 +191,6 @@ class GB2Activity : AppCompatActivity() {
                 }
 
                 BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED -> {
-                    Log.d(TAG, "mGattUpdateReceiver: onReceive")
                     val mGattService = mBluetoothLeService!!.getSupportedGattServices(UUID.fromString(GattAttributes.GRAN_BOARD_2_DARTS_TARGET_READ_SERVICE))
                     if(mGattService != null) {
                         val mGattCharacteristic = mGattService.getCharacteristic(UUID.fromString(GattAttributes.GRAN_BOARD_2_DARTS_TARGET_READ_CHARACTERISTIC))
@@ -205,5 +208,12 @@ class GB2Activity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    private fun openFragment(fragment: android.support.v4.app.Fragment) {
+        val transaction = supportFragmentManager.beginTransaction()
+        transaction.replace(R.id.gb2_frameLayout_container, fragment)
+//        transaction.addToBackStack(null)
+        transaction.commit()
     }
 }

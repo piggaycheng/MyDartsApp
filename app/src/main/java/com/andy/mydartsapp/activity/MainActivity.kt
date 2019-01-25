@@ -31,8 +31,8 @@ class MainActivity : AppCompatActivity() {
             }
             R.id.navigation_profile -> {
                 title = "Profile"
-                val prolfileFragment = ProfileFragment.newInstance()
-                openFragment(prolfileFragment)
+                val profileFragment = ProfileFragment.newInstance()
+                openFragment(profileFragment)
                 return@OnNavigationItemSelectedListener true
             }
             R.id.navigation_more -> {
@@ -49,7 +49,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun openFragment(fragment: android.support.v4.app.Fragment) {
         val transaction = supportFragmentManager.beginTransaction()
-        transaction.replace(R.id.frameLayout_container, fragment)
+        transaction.replace(R.id.main_frameLayout_container, fragment)
 //        transaction.addToBackStack(null)
         transaction.commit()
     }

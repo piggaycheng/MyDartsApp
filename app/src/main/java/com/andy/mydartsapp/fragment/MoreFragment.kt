@@ -46,7 +46,6 @@ class MoreFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         var rootView = inflater.inflate(R.layout.fragment_more, container, false)
-
         rootView.btn_start_GB2.setOnClickListener(mOnClick)
 
         return rootView
