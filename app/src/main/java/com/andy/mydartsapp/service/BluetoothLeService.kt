@@ -2,20 +2,21 @@ package com.andy.mydartsapp.service
 
 import android.app.Service
 import android.bluetooth.*
-import android.bluetooth.BluetoothAdapter.STATE_CONNECTING
-import android.bluetooth.BluetoothAdapter.STATE_DISCONNECTED
+import android.bluetooth.BluetoothAdapter.*
 import android.content.Intent
 import android.os.Binder
 import android.os.IBinder
 import android.util.Log
+import com.andy.mydartsapp.GattAttributes
+import java.util.*
 
 class BluetoothLeService: Service() {
     companion object {
         private val TAG: String = BluetoothLeService::class.java.simpleName
-        val ACTION_GATT_CONNECTED: String = "com.andy.bluetooth.le.ACTION_GATT_CONNECTED"
-        val ACTION_GATT_DISCONNECTED: String = "com.andy.bluetooth.le.ACTION_GATT_DISCONNECTED"
-        val ACTION_GATT_SERVICES_DISCOVERED: String = "com.andy.bluetooth.le.ACTION_GATT_SERVICES_DISCOVERED"
-        val ACTION_DATA_AVAILABLE: String = "com.andy.bluetooth.le.ACTION_DATA_AVAILABLE"
+        const val ACTION_GATT_CONNECTED: String = "com.andy.bluetooth.le.ACTION_GATT_CONNECTED"
+        const val ACTION_GATT_DISCONNECTED: String = "com.andy.bluetooth.le.ACTION_GATT_DISCONNECTED"
+        const val ACTION_GATT_SERVICES_DISCOVERED: String = "com.andy.bluetooth.le.ACTION_GATT_SERVICES_DISCOVERED"
+        const val ACTION_DATA_AVAILABLE: String = "com.andy.bluetooth.le.ACTION_DATA_AVAILABLE"
     }
 
     private val mBinder: IBinder = LocalBinder()
@@ -131,13 +132,69 @@ class BluetoothLeService: Service() {
         mBluetoothGatt!!.disconnect()
     }
 
+    private fun broadcastUpdate(action: String) {
+        val intent = Intent(action)
+        sendBroadcast(intent)
+    }
+
+    fun getSupportedGattServices(): List<BluetoothGattService>? {
+        return if (mBluetoothGatt == null) {
+            null
+        }else {
+            mBluetoothGatt!!.services
+        }
+    }
+
+    fun getSupportedGattServices(uuid: UUID): BluetoothGattService? {
+        return if (mBluetoothGatt == null) {
+            null
+        }else {
+            mBluetoothGatt!!.getService(uuid)
+        }
+
+    }
+
+    fun setCharacteristicNotification(
+        characteristic: BluetoothGattCharacteristic,
+        enabled: Boolean
+    ) {
+        if (mBluetoothAdapter == null || mBluetoothGatt == null) {
+            Log.w(TAG, "BluetoothAdapter not initialized")
+            return
+        }
+        mBluetoothGatt!!.setCharacteristicNotification(characteristic, enabled)
+
+        // This is specific to Heart Rate Measurement.
+        //*重要
+        if (GattAttributes.GRAN_BOARD_2_DARTS_TARGET_READ_CHARACTERISTIC == characteristic.uuid.toString()) {
+            val descriptor = characteristic.getDescriptor(
+                UUID.fromString(GattAttributes.CLIENT_CHARACTERISTIC_CONFIG)
+            )
+            descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+            mBluetoothGatt!!.writeDescriptor(descriptor)
+        }
+    }
+
     private val mGattCallback = object: BluetoothGattCallback() {
         override fun onConnectionStateChange(gatt: BluetoothGatt?, status: Int, newState: Int) {
             super.onConnectionStateChange(gatt, status, newState)
+
+            mConnectionState = STATE_CONNECTED
+            broadcastUpdate(ACTION_GATT_CONNECTED)
+            Log.i(TAG, "Connected to GATT server.")
+            // Attempts to discover services after successful connection.
+            Log.i(TAG, "Attempting to start service discovery:" + mBluetoothGatt!!.discoverServices())
         }
 
         override fun onServicesDiscovered(gatt: BluetoothGatt?, status: Int) {
             super.onServicesDiscovered(gatt, status)
+
+            if(status == BluetoothGatt.GATT_SUCCESS) {
+                broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED)
+            }else {
+                Log.w(TAG, "onServicesDiscovered received: $status")
+            }
+
         }
 
         override fun onCharacteristicRead(
@@ -148,8 +205,17 @@ class BluetoothLeService: Service() {
             super.onCharacteristicRead(gatt, characteristic, status)
         }
 
+        //讀資料
         override fun onCharacteristicChanged(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?) {
             super.onCharacteristicChanged(gatt, characteristic)
+            val data = characteristic!!.value
+            if (data != null && data.isNotEmpty()) {
+                val stringBuilder = StringBuilder(data.size)
+                for (byteChar in data) {
+                    stringBuilder.append(String.format("%02X ", byteChar))
+                }
+                Log.i(TAG, "onCharacteristicChanged: " + String(data) + "  " + stringBuilder.toString())
+            }
         }
     }
 }
