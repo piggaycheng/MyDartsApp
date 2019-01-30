@@ -30,6 +30,7 @@ class GB2MainFragment : Fragment() {
         // Inflate the layout for this fragment
         val rootView = inflater.inflate(R.layout.fragment_gb2_main, container, false)
         rootView.btn_leave_gb2.setOnClickListener(mOnClick)
+        rootView.btn_free_mode.setOnClickListener(mOnClick)
 
         return rootView
     }
@@ -39,8 +40,20 @@ class GB2MainFragment : Fragment() {
             R.id.btn_leave_gb2 -> {
                 activity!!.finish()
             }
+            R.id.btn_free_mode -> {
+                val freeModeFragment = FreeModeFragment.newInstance()
+                openFragment(freeModeFragment)
+            }
         }
     }
+
+    private fun openFragment(fragment: android.support.v4.app.Fragment) {
+        val transaction = activity!!.supportFragmentManager.beginTransaction()
+        transaction.replace(R.id.gb2_frameLayout_container, fragment)
+//        transaction.addToBackStack(null)
+        transaction.commit()
+    }
+
 
     companion object {
         /**
