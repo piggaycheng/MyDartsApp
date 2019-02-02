@@ -74,7 +74,7 @@ class GB2Activity : AppCompatActivity() {
         initBluetoothAdapter()
         scanLeDevice(true)
 
-        registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter())
+        registerReceiver(mGattUpdateReceiver, mGattUpdateIntentFilter())
         if (mBluetoothLeService != null) {
             val result = mBluetoothLeService!!.connect(gb2Address)
             Log.d(TAG, "Connect request result=$result")
@@ -142,7 +142,7 @@ class GB2Activity : AppCompatActivity() {
         }
     }
 
-    private fun makeGattUpdateIntentFilter(): IntentFilter {
+    private fun mGattUpdateIntentFilter(): IntentFilter {
         val intentFilter = IntentFilter()
         intentFilter.addAction(BluetoothLeService.ACTION_GATT_CONNECTED)
         intentFilter.addAction(BluetoothLeService.ACTION_GATT_DISCONNECTED)

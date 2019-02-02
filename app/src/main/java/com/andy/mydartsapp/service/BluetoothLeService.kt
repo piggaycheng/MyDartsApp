@@ -17,6 +17,7 @@ class BluetoothLeService: Service() {
         const val ACTION_GATT_DISCONNECTED: String = "com.andy.bluetooth.le.ACTION_GATT_DISCONNECTED"
         const val ACTION_GATT_SERVICES_DISCOVERED: String = "com.andy.bluetooth.le.ACTION_GATT_SERVICES_DISCOVERED"
         const val ACTION_DATA_AVAILABLE: String = "com.andy.bluetooth.le.ACTION_DATA_AVAILABLE"
+        const val ACTION_SCORE_RETRIEVE: String = "com.andy.bluetooth.le.ACTION_SCORE_RETRIEVE"
     }
 
     private val mBinder: IBinder = LocalBinder()
@@ -137,6 +138,12 @@ class BluetoothLeService: Service() {
         sendBroadcast(intent)
     }
 
+    private fun broadcastUpdate(action: String, score: String) {
+        val intent = Intent(action)
+        intent.putExtra("data", score)
+        sendBroadcast(intent)
+    }
+
     fun getSupportedGattServices(): List<BluetoothGattService>? {
         return if (mBluetoothGatt == null) {
             null
@@ -221,6 +228,7 @@ class BluetoothLeService: Service() {
                     stringBuilder.append(String.format("%02X ", byteChar))
                 }
                 Log.i(TAG, "onCharacteristicChanged: " + String(data) + "  " + stringBuilder.toString())
+                broadcastUpdate(ACTION_SCORE_RETRIEVE, String(data))
             }
         }
     }

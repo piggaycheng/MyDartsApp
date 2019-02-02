@@ -20,7 +20,6 @@ class GB2MainFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
     }
 
     override fun onCreateView(
@@ -53,7 +52,6 @@ class GB2MainFragment : Fragment() {
 //        transaction.addToBackStack(null)
         transaction.commit()
     }
-
 
     companion object {
         /**
