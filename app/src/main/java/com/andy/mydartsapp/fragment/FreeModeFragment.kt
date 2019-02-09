@@ -62,13 +62,15 @@ class FreeModeFragment : Fragment() {
                     if(data != "BTN@") {
                         scoreMap = dataMap.getScoreMap(data) as JSONObject
                         //TODO
-                        activity!!.runOnUiThread{
-                            Runnable {
-                                Log.d(TAG, "ratio = $scoreMap")
-                                ratioTextView!!.text = scoreMap.getString("ratio")
-                                scoreTextView!!.text = scoreMap.getString("score")
-                            }
-                        }
+//                        activity!!.runOnUiThread{
+//                            Runnable {
+//                                kotlin.run {
+//                                    Log.d(TAG, "ratio = $scoreMap")
+                                    ratioTextView!!.text = scoreMap.getString("ratio")
+                                    scoreTextView!!.text = scoreMap.getString("score")
+//                                }
+//                            }
+//                        }
                     } else {
 
                     }
