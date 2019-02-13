@@ -5,6 +5,9 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.res.AssetFileDescriptor
+import android.media.AudioManager
+import android.media.SoundPool
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.util.Log
@@ -31,6 +34,14 @@ class FreeModeFragment : Fragment() {
     private var ratioTextView: TextView? = null
     private var scoreTextView: TextView? = null
 
+    private val soundId = HashMap<Number, Number>()
+    private val mSoundPool = SoundPool.Builder().setMaxStreams(8).build()
+    private val soundFolder = "sounds"
+    private val hitSoundFile = "Hit.mp3"
+    private val bullSoundFile = "Bull.mp3"
+    private val blackSoundFile = "Black.mp3"
+//    private val mAudioManager = activity!!.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
     }
@@ -45,12 +56,23 @@ class FreeModeFragment : Fragment() {
         scoreTextView = rootView.textView_score
 
         activity!!.registerReceiver(mUpdateReceiver, mUpdateIntentFilter())
+
+        val mAssets = context!!.assets
+        soundId[0] = mSoundPool.load(mAssets.openFd("$soundFolder/$hitSoundFile"), 1)
+        soundId[1] = mSoundPool.load(mAssets.openFd("$soundFolder/$bullSoundFile"), 1)
+        soundId[2] = mSoundPool.load(mAssets.openFd("$soundFolder/$blackSoundFile"), 1)
+
         return rootView
     }
 
     override fun onPause() {
         super.onPause()
         activity!!.unregisterReceiver(mUpdateReceiver)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        activity!!.registerReceiver(mUpdateReceiver, mUpdateIntentFilter())
     }
 
     private val mUpdateReceiver = object: BroadcastReceiver() {
@@ -61,16 +83,41 @@ class FreeModeFragment : Fragment() {
                     val data = intent.getStringExtra("data")
                     if(data != "BTN@") {
                         scoreMap = dataMap.getScoreMap(data) as JSONObject
-                        //TODO
-//                        activity!!.runOnUiThread{
-//                            Runnable {
-//                                kotlin.run {
-//                                    Log.d(TAG, "ratio = $scoreMap")
-                                    ratioTextView!!.text = scoreMap.getString("ratio")
-                                    scoreTextView!!.text = scoreMap.getString("score")
-//                                }
-//                            }
-//                        }
+
+                        ratioTextView!!.text = scoreMap.getString("ratio")
+                        scoreTextView!!.text = scoreMap.getString("score")
+
+                        Thread(Runnable {
+                            kotlin.run {
+                                if(scoreMap.getString("score") == "50") {
+                                    when (scoreMap.getString("ratio")) {
+                                        "single" -> {
+                                            //资源Id，左音量，右音量，优先级，循环次数,速率
+                                            mSoundPool.play(soundId[1]!!.toInt(), 1.0f, 1.0f, 1, 0, 1.0f)
+                                        }
+                                        "double" -> {
+                                            mSoundPool.play(soundId[2]!!.toInt(), 1.0f, 1.0f, 1, 0, 1.0f)
+                                        }
+                                    }
+                                } else {
+                                    when (scoreMap.getString("ratio")) {
+                                        "double" -> {
+                                            mSoundPool.play(soundId[0]!!.toInt(), 1.0f, 1.0f, 1, 1, 7.0f)
+                                        }
+                                        "triple" -> {
+                                            mSoundPool.play(soundId[0]!!.toInt(), 1.0f, 1.0f, 1, 2, 7.0f)
+                                        }
+                                        else -> {
+                                            mSoundPool.play(soundId[0]!!.toInt(), 1.0f, 1.0f, 1, 0, 1.0f)
+                                        }
+                                    }
+                                }
+
+                                Log.d(TAG, "sound thread interrupt")
+                                Thread.currentThread().interrupt()
+                            }
+                        }).start()
+
                     } else {
 
                     }
