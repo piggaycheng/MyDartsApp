@@ -1,5 +1,5 @@
 # MyDartsApp
 My darts app project
 
-#DEMO
+# DEMO
 [DEMO](https://www.youtube.com/watch?v=BTvbchdKeyg)
